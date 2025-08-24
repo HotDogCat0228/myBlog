@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import ArticleDetail from './pages/ArticleDetail';
@@ -14,34 +15,36 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/article/:id" element={<ArticleDetail />} />
-            <Route path="/category/:category" element={<CategoryPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            } />
-            <Route path="/create" element={
-              <AdminRoute>
-                <CreateArticle />
-              </AdminRoute>
-            } />
-            <Route path="/edit/:id" element={
-              <AdminRoute>
-                <EditArticle />
-              </AdminRoute>
-            } />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/article/:id" element={<ArticleDetail />} />
+              <Route path="/category/:category" element={<CategoryPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } />
+              <Route path="/create" element={
+                <AdminRoute>
+                  <CreateArticle />
+                </AdminRoute>
+              } />
+              <Route path="/edit/:id" element={
+                <AdminRoute>
+                  <EditArticle />
+                </AdminRoute>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
