@@ -413,3 +413,147 @@ th {
     font-size: 1.5rem;
   }
 }
+
+/* 導覽列管理樣式 */
+.navigation-manager {
+  padding: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.form-modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.form-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.form-modal form {
+  padding: 20px;
+}
+
+.form-help {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.type-internal {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.type-external {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.type-category {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.path-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #666;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.enabled {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge.disabled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.navigation-list .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.navigation-list .empty-state p {
+  margin: 10px 0;
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
+import NavigationManager from '../components/NavigationManager';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -181,6 +182,12 @@ function AdminDashboard() {
         >
           分類管理
         </button>
+        <button 
+          className={`tab-btn ${activeTab === 'navigation' ? 'active' : ''}`}
+          onClick={() => setActiveTab('navigation')}
+        >
+          導覽列管理
+        </button>
       </div>
 
       {/* 文章管理 */}
@@ -303,6 +310,11 @@ function AdminDashboard() {
             )}
           </div>
         </div>
+      )}
+
+      {/* 導覽列管理標籤頁 */}
+      {activeTab === 'navigation' && (
+        <NavigationManager />
       )}
     </div>
   );
