@@ -1,3 +1,15 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# 不允許爬取的路径
+Disallow: /admin
+Disallow: /login
+Disallow: /create
+Disallow: /edit
+
+# Sitemap
+Sitemap: https://hotdogcat0228.github.io/myBlog/sitemap.xml
+
+# 爬蟲延遲（毫秒）
+Crawl-delay: 1
