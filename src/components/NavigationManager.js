@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { isValidUrl, sanitizeText } from '../utils/inputValidation';
 import '../pages/AdminDashboard.css';
 
 function NavigationManager() {
@@ -8,6 +10,7 @@ function NavigationManager() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     path: '',
@@ -17,7 +20,15 @@ function NavigationManager() {
   });
 
   useEffect(() => {
+    // 監聽認證狀態
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('導覽管理 - 當前用戶:', currentUser?.email);
+      setUser(currentUser);
+    });
+
     fetchNavigationItems();
+    
+    return () => unsubscribe();
   }, []);
 
   const fetchNavigationItems = async () => {
@@ -38,10 +49,35 @@ function NavigationManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 驗證表單數據
+    if (!formData.title.trim()) {
+      alert('請輸入導覽項目標題');
+      return;
+    }
+    
+    if (!formData.path.trim()) {
+      alert('請輸入路徑');
+      return;
+    }
+    
+    // 驗證外部連結 URL 格式
+    if (formData.type === 'external' && !isValidUrl(formData.path)) {
+      alert('外部連結 URL 格式不正確');
+      return;
+    }
+    
     try {
+      // 清理輸入數據
+      const sanitizedTitle = sanitizeText(formData.title);
+      const sanitizedPath = formData.type === 'external' ? formData.path : sanitizeText(formData.path);
+      
       const data = {
-        ...formData,
-        order: parseInt(formData.order),
+        title: sanitizedTitle,
+        path: sanitizedPath,
+        type: formData.type,
+        order: parseInt(formData.order) || 0,
+        enabled: formData.enabled,
         updatedAt: new Date()
       };
 
@@ -57,8 +93,19 @@ function NavigationManager() {
       resetForm();
       fetchNavigationItems();
     } catch (error) {
-      console.error('操作失敗:', error);
-      alert('操作失敗，請再試一次');
+      console.error('操作失敗，詳細錯誤:', error);
+      
+      let errorMessage = '操作失敗，請再試一次';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage = '權限不足，請檢查登入狀態';
+      } else if (error.code === 'unavailable') {
+        errorMessage = '無法連接到資料庫，請檢查網路連線';
+      } else if (error.message) {
+        errorMessage = `操作失敗: ${error.message}`;
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -107,6 +154,43 @@ function NavigationManager() {
 
   if (loading) {
     return <div className="loading">載入中...</div>;
+  }
+
+  // 檢查用戶是否已登入並且是管理員
+  if (!user) {
+    return (
+      <div className="navigation-manager">
+        <div className="auth-required card">
+          <div className="card-body">
+            <h3>🔐 需要管理員登入</h3>
+            <p>請先登入管理員帳號才能管理導覽列項目。</p>
+            <div className="mt-4">
+              <a href="#/login" className="btn btn-primary">前往登入</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.email !== 'van880228@gmail.com') {
+    return (
+      <div className="navigation-manager">
+        <div className="auth-required card">
+          <div className="card-body">
+            <h3>⚠️ 權限不足</h3>
+            <p>只有管理員才能管理導覽列項目。</p>
+            <p><strong>當前用戶:</strong> {user.email}</p>
+            <p><strong>需要的管理員帳號:</strong> van880228@gmail.com</p>
+            <div className="mt-4">
+              <button onClick={() => auth.signOut()} className="btn btn-secondary">
+                登出並重新登入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

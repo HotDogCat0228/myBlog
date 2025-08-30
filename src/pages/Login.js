@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { validateEmail, validatePassword } from '../utils/inputValidation';
 import './Login.css';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login, signup } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (password.length < 6) {
-      return setError('密碼至少需要 6 個字符');
+    // 驗證電子郵件
+    if (!validateEmail(email)) {
+      return setError('請輸入有效的電子郵件地址');
+    }
+    
+    // 驗證密碼
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return setError(`密碼驗證失敗: ${passwordValidation.error}`);
     }
 
     try {
       setError('');
       setLoading(true);
       
-      if (isLogin) {
-        await login(email, password);
-      } else {
-        await signup(email, password);
-      }
-      
+      await login(email, password);
       navigate('/admin');
     } catch (error) {
       console.error('認證錯誤:', error);
@@ -45,14 +47,10 @@ function Login() {
         return '找不到此用戶';
       case 'auth/wrong-password':
         return '密碼錯誤';
-      case 'auth/email-already-in-use':
-        return '此電子郵件已被使用';
-      case 'auth/weak-password':
-        return '密碼強度不足';
       case 'auth/invalid-email':
         return '電子郵件格式不正確';
       default:
-        return isLogin ? '登入失敗' : '註冊失敗';
+        return '登入失敗';
     }
   };
 
@@ -60,8 +58,8 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2>🔐 {isLogin ? '管理員登入' : '創建管理員帳號'}</h2>
-          <p>{isLogin ? '只有網站管理員才能登入此系統' : '創建第一個管理員帳號'}</p>
+          <h2>🔐 管理員登入</h2>
+          <p>只有網站管理員才能登入此系統</p>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -96,25 +94,9 @@ function Login() {
             className="submit-button"
             disabled={loading}
           >
-            {loading ? '處理中...' : (isLogin ? '管理員登入' : '創建管理員帳號')}
+            {loading ? '處理中...' : '管理員登入'}
           </button>
         </form>
-
-        <div className="login-footer">
-          <p>
-            {isLogin ? '需要創建管理員帳號？' : '已有管理員帳號？'}
-            <button 
-              type="button"
-              className="toggle-button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-              }}
-            >
-              {isLogin ? '創建帳號' : '立即登入'}
-            </button>
-          </p>
-        </div>
 
         <div className="back-to-home">
           <Link to="/">← 回到首頁</Link>

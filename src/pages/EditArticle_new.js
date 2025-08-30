@@ -7,6 +7,13 @@ import Editor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { 
+  validateTitle, 
+  validateContent, 
+  isValidUrl, 
+  sanitizeText,
+  validateExcerpt 
+} from '../utils/inputValidation';
 import './CreateArticle.css'; // 重用創建文章的樣式
 
 function EditArticle() {
@@ -27,6 +34,43 @@ function EditArticle() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const docRef = doc(db, 'articles', id);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setTitle(data.title || '');
+          setExcerpt(data.excerpt || '');
+          setContent(data.content || '');
+          setCategory(data.category || '');
+          setTags(data.tags ? data.tags.join(', ') : '');
+          setCoverImageUrl(data.coverImage || '');
+          setPublished(data.published || false);
+        } else {
+          alert('文章不存在');
+          navigate('/admin');
+        }
+      } catch (error) {
+        console.error('獲取文章失敗:', error);
+        alert('獲取文章失敗');
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('獲取分類失敗:', error);
+      }
+    };
+    
     const loadData = async () => {
       await Promise.all([
         fetchArticle(),
@@ -36,72 +80,59 @@ function EditArticle() {
     };
 
     loadData();
-  }, [id]);
-
-  const fetchArticle = async () => {
-    try {
-      const docRef = doc(db, 'articles', id);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setTitle(data.title || '');
-        setExcerpt(data.excerpt || '');
-        setContent(data.content || '');
-        setCategory(data.category || '');
-        setTags(data.tags ? data.tags.join(', ') : '');
-        setCoverImageUrl(data.coverImage || '');
-        setPublished(data.published || false);
-      } else {
-        alert('文章不存在');
-        navigate('/admin');
-      }
-    } catch (error) {
-      console.error('獲取文章失敗:', error);
-      alert('獲取文章失敗');
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'categories'));
-      const categoriesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCategories(categoriesData);
-    } catch (error) {
-      console.error('獲取分類失敗:', error);
-    }
-  };
+  }, [id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!title.trim()) {
-      alert('請輸入文章標題');
+    // 驗證標題
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.isValid) {
+      alert(`標題驗證失敗: ${titleValidation.error}`);
       return;
     }
     
-    if (!content.trim()) {
-      alert('請輸入文章內容');
+    // 驗證內容
+    const contentValidation = validateContent(content);
+    if (!contentValidation.isValid) {
+      alert(`內容驗證失敗: ${contentValidation.error}`);
       return;
     }
     
+    // 驗證摘要
     if (!excerpt.trim()) {
       alert('請輸入文章摘要');
+      return;
+    }
+    
+    const excerptValidation = validateExcerpt(excerpt);
+    if (!excerptValidation.isValid) {
+      alert(`摘要驗證失敗: ${excerptValidation.error}`);
+      return;
+    }
+    
+    // 驗證封面圖片 URL（如果有提供）
+    if (coverImageUrl && !isValidUrl(coverImageUrl)) {
+      alert('封面圖片 URL 格式不正確');
       return;
     }
 
     setLoading(true);
     
     try {
+      // 清理和安全處理輸入數據
+      const sanitizedTitle = sanitizeText(title);
+      const sanitizedExcerpt = sanitizeText(excerpt);
+      const sanitizedTags = tags.split(',')
+        .map(tag => sanitizeText(tag.trim()))
+        .filter(tag => tag && tag.length <= 50); // 限制標籤長度
+        
       const articleData = {
-        title,
-        excerpt,
+        title: sanitizedTitle,
+        excerpt: sanitizedExcerpt,
         content,
         category,
-        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        tags: sanitizedTags,
         coverImage: coverImageUrl || '',
         published,
         updatedAt: new Date()
@@ -260,7 +291,25 @@ function EditArticle() {
         </div>
 
         <div className="content-editor">
-          <h3>文章內容</h3>
+          <div className="editor-header">
+            <h3>文章內容</h3>
+            <div className="editor-mode-toggle">
+              <button
+                type="button"
+                className={`mode-btn ${!previewMode ? 'active' : ''}`}
+                onClick={() => setPreviewMode(false)}
+              >
+                📝 編輯模式
+              </button>
+              <button
+                type="button"
+                className={`mode-btn ${previewMode ? 'active' : ''}`}
+                onClick={() => setPreviewMode(true)}
+              >
+                👀 預覽模式
+              </button>
+            </div>
+          </div>
           <div className="editor-container">
             {previewMode ? (
               <div className="markdown-preview">

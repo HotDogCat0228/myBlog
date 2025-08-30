@@ -148,44 +148,44 @@ function CategoryPage() {
           <section className="articles-section">
             <div className="articles-grid">
               {articles.map(article => (
-                <Link key={article.id} to={`/article/${article.id}`} className="article-card-link">
-                  <article className="article-card">
-                    {article.coverImage && (
-                      <div className="article-image">
-                        <img src={article.coverImage} alt={article.title} />
-                      </div>
+                <article key={article.id} className="article-card">
+                  {article.coverImage && (
+                    <div className="article-image">
+                      <img src={article.coverImage} alt={article.title} />
+                    </div>
+                  )}
+                  
+                  <div className="article-content">
+                    <h3>
+                      <Link to={`/article/${article.id}`}>
+                        {article.title}
+                      </Link>
+                    </h3>
+                    
+                    {article.excerpt && (
+                      <p className="article-excerpt">{article.excerpt}</p>
                     )}
                     
-                    <div className="article-content">
-                      <h3 className="article-title">
-                        {article.title}
-                      </h3>
-                      
-                      {article.excerpt && (
-                        <p className="article-excerpt">{article.excerpt}</p>
-                      )}
-                      
-                      <div className="article-meta">
-                        <span className="article-date">
-                          {article.createdAt?.toLocaleDateString('zh-TW')}
-                        </span>
-                        <span className="article-views">
-                          {article.views || 0} 次瀏覽
-                        </span>
-                      </div>
-                      
-                      {article.tags && article.tags.length > 0 && (
-                        <div className="article-tags">
-                          {article.tags.slice(0, 3).map((tag, index) => (
-                            <span key={index} className="tag">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                    <div className="article-meta">
+                      <span className="article-date">
+                        {article.createdAt?.toLocaleDateString('zh-TW')}
+                      </span>
+                      <span className="article-views">
+                        {article.views || 0} 次瀏覽
+                      </span>
                     </div>
-                  </article>
-                </Link>
+                    
+                    {article.tags && article.tags.length > 0 && (
+                      <div className="article-tags">
+                        {article.tags.slice(0, 3).map((tag, index) => (
+                          <span key={index} className="tag">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
           </section>

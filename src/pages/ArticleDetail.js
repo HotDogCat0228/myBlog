@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import SEOHead from '../components/SEOHead';
 import './ArticleDetail.css';
 
 function ArticleDetail() {
@@ -15,37 +16,55 @@ function ArticleDetail() {
 
   useEffect(() => {
     const fetchArticle = async () => {
-      try {
+      try {        
+        if (!id) {
+          setError('文章 ID 無效');
+          setLoading(false);
+          return;
+        }
+        
         const articleDoc = doc(db, 'articles', id);
         const docSnap = await getDoc(articleDoc);
         
         if (docSnap.exists()) {
+          const rawData = docSnap.data();
+          
           const articleData = {
             id: docSnap.id,
-            ...docSnap.data(),
-            createdAt: docSnap.data().createdAt?.toDate(),
-            updatedAt: docSnap.data().updatedAt?.toDate()
+            ...rawData,
+            createdAt: rawData.createdAt?.toDate(),
+            updatedAt: rawData.updatedAt?.toDate()
           };
           
           setArticle(articleData);
           
           // 增加瀏覽次數
-          await updateDoc(articleDoc, {
-            views: increment(1)
-          });
+          try {
+            await updateDoc(articleDoc, {
+              views: increment(1)
+            });
+          } catch (viewError) {
+            console.warn('更新瀏覽次數失敗:', viewError);
+            // 不影響文章顯示
+          }
           
         } else {
           setError('文章不存在');
         }
       } catch (error) {
         console.error('獲取文章失敗:', error);
-        setError('載入文章時發生錯誤');
+        setError(`載入文章時發生錯誤: ${error.message}`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArticle();
+    if (id) {
+      fetchArticle();
+    } else {
+      setError('文章 ID 無效');
+      setLoading(false);
+    }
   }, [id]);
 
   const components = {
@@ -97,6 +116,20 @@ function ArticleDetail() {
 
   return (
     <div className="article-detail">
+      <SEOHead 
+        title={article.title}
+        description={article.excerpt}
+        keywords={`${article.category}, ${article.tags ? article.tags.join(', ') : ''}`}
+        image={article.coverImage}
+        url={`/article/${id}`}
+        type="article"
+        author={article.author}
+        publishedTime={article.createdAt?.toISOString()}
+        modifiedTime={article.updatedAt?.toISOString()}
+        category={article.category}
+        tags={article.tags || []}
+      />
+      
       <article className="article-container">
         {article.coverImage && (
           <div className="article-cover">
@@ -142,8 +175,12 @@ function ArticleDetail() {
         
         <footer className="article-footer">
           <div className="article-info">
-            <p>作者：{article.authorEmail}</p>
-            <p>最後更新：{article.updatedAt?.toLocaleDateString('zh-TW')}</p>
+            {article.author && (
+              <p>作者：{article.author}</p>
+            )}
+            {article.updatedAt && (
+              <p>最後更新：{article.updatedAt?.toLocaleDateString('zh-TW')}</p>
+            )}
           </div>
         </footer>
       </article>

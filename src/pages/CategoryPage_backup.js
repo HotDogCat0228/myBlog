@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { c      <div className="category-header">
+        <div className="container">
+          <div className="category-breadcrumb">
+            <Link to="/">首頁</Link> / <span>分類</span> / <span>{categoryInfo?.name || category}</span>
+          </div>
+          <div className="category-title-section">
+            <div className="category-icon-small">
+              {(categoryInfo?.icon && categoryInfo.icon.trim()) || '💻'}
+            </div>
+            <div className="category-title-info">
+              <h1>{categoryInfo?.name || category}</h1>
+              <p>{categoryInfo?.description || `關於 ${category} 的文章`}</p>
+              <div className="category-meta">
+                <span className="article-count">{articles.length} 篇文章</span>
+                {categoryInfo?.color && (
+                  <span className="category-color" style={{ backgroundColor: categoryInfo.color }}></span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>cs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import SEOHead from '../components/SEOHead';
 import './CategoryPage.css';
@@ -115,22 +136,16 @@ function CategoryPage() {
       />
       
       <div className="category-header">
-        <div className="container">
-          <div className="category-breadcrumb">
-            <Link to="/">首頁</Link> <span className="separator">/</span> <span>分類</span> <span className="separator">/</span> <span>{categoryInfo?.name || category}</span>
-          </div>
-          <div className="category-title-section">
-            <div className="category-icon-small">
-              {(categoryInfo?.icon && categoryInfo.icon.trim()) || '💻'}
+        <div className="category-hero" style={{ backgroundColor: categoryInfo?.color || '#6c63ff' }}>
+          <div className="category-info">
+            <div className="category-icon">
+              {(categoryInfo?.icon && categoryInfo.icon.trim()) || '�'}
             </div>
-            <div className="category-title-info">
+            <div className="category-details">
               <h1>{categoryInfo?.name || category}</h1>
               <p>{categoryInfo?.description || `關於 ${category} 的文章`}</p>
-              <div className="category-meta">
-                <span className="article-count">{articles.length} 篇文章</span>
-                {categoryInfo?.color && (
-                  <span className="category-color" style={{ backgroundColor: categoryInfo.color }}></span>
-                )}
+              <div className="category-stats">
+                <span>{articles.length} 篇文章</span>
               </div>
             </div>
           </div>
@@ -146,46 +161,51 @@ function CategoryPage() {
           </div>
         ) : (
           <section className="articles-section">
+            <div className="section-header">
+              <h2>文章列表</h2>
+              <p>共 {articles.length} 篇文章</p>
+            </div>
+            
             <div className="articles-grid">
               {articles.map(article => (
-                <Link key={article.id} to={`/article/${article.id}`} className="article-card-link">
-                  <article className="article-card">
-                    {article.coverImage && (
-                      <div className="article-image">
-                        <img src={article.coverImage} alt={article.title} />
-                      </div>
+                <article key={article.id} className="article-card">
+                  {article.coverImage && (
+                    <div className="article-image">
+                      <img src={article.coverImage} alt={article.title} />
+                    </div>
+                  )}
+                  
+                  <div className="article-content">
+                    <h3>
+                      <Link to={`/article/${article.id}`}>
+                        {article.title}
+                      </Link>
+                    </h3>
+                    
+                    {article.excerpt && (
+                      <p className="article-excerpt">{article.excerpt}</p>
                     )}
                     
-                    <div className="article-content">
-                      <h3 className="article-title">
-                        {article.title}
-                      </h3>
-                      
-                      {article.excerpt && (
-                        <p className="article-excerpt">{article.excerpt}</p>
-                      )}
-                      
-                      <div className="article-meta">
-                        <span className="article-date">
-                          {article.createdAt?.toLocaleDateString('zh-TW')}
-                        </span>
-                        <span className="article-views">
-                          {article.views || 0} 次瀏覽
-                        </span>
-                      </div>
-                      
-                      {article.tags && article.tags.length > 0 && (
-                        <div className="article-tags">
-                          {article.tags.slice(0, 3).map((tag, index) => (
-                            <span key={index} className="tag">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                    <div className="article-meta">
+                      <span className="article-date">
+                        {article.createdAt?.toLocaleDateString('zh-TW')}
+                      </span>
+                      <span className="article-views">
+                        {article.views || 0} 次瀏覽
+                      </span>
                     </div>
-                  </article>
-                </Link>
+                    
+                    {article.tags && article.tags.length > 0 && (
+                      <div className="article-tags">
+                        {article.tags.slice(0, 3).map((tag, index) => (
+                          <span key={index} className="tag">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
           </section>

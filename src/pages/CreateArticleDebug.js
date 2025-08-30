@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-import Editor from '@monaco-editor/react';
+// 使用 CodeMirror 替代 Monaco Editor
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { oneDark } from '@codemirror/theme-one-dark';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -16,7 +19,7 @@ import {
 } from '../utils/inputValidation';
 import './CreateArticle.css';
 
-function CreateArticle() {
+function CreateArticleDebug() {
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('# 開始寫作\n\n在這裡開始你的文章...');
@@ -46,6 +49,26 @@ function CreateArticle() {
     } catch (error) {
       console.error('獲取分類失敗:', error);
     }
+  };
+
+  const components = {
+    code({ node, inline, className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={tomorrow}
+          language={match[1]}
+          PreTag="div"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
   };
 
   const handleSubmit = async (e) => {
@@ -108,37 +131,14 @@ function CreateArticle() {
       };
 
       await addDoc(collection(db, 'articles'), articleData);
-      alert('文章創建成功！');
+      
+      alert('文章發布成功！');
       navigate('/admin');
     } catch (error) {
-      console.error('創建文章失敗:', error);
-      alert('創建文章失敗，請再試一次');
+      console.error('發布文章失敗:', error);
+      alert('發布文章失敗，請稍後再試');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEditorChange = (value) => {
-    setContent(value || '');
-  };
-
-  const components = {
-    code({ node, inline, className, children, ...props }) {
-      const match = /language-(\w+)/.exec(className || '');
-      return !inline && match ? (
-        <SyntaxHighlighter
-          style={tomorrow}
-          language={match[1]}
-          PreTag="div"
-          {...props}
-        >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
-      ) : (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      );
     }
   };
 
@@ -147,54 +147,43 @@ function CreateArticle() {
   }
 
   return (
-    <div className="create-article">
-      <div className="create-article-header">
-        <h1>創建新文章</h1>
-        <div className="article-actions">
-          <button
-            type="button"
-            className={`preview-btn ${previewMode ? 'active' : ''}`}
-            onClick={() => setPreviewMode(!previewMode)}
-          >
-            {previewMode ? '編輯模式' : '預覽模式'}
-          </button>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="create-article-form">
-        <div className="form-group">
-          <label htmlFor="title">文章標題</label>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">新增文章 (除錯版本)</h1>
+      
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">標題</label>
           <input
             type="text"
-            id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="輸入文章標題"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="輸入文章標題..."
             required
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="excerpt">文章摘要</label>
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">摘要</label>
           <textarea
-            id="excerpt"
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
-            placeholder="輸入文章摘要"
-            rows="3"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            rows={3}
+            placeholder="輸入文章摘要..."
             required
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="category">分類</label>
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">分類</label>
           <select
-            id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">選擇分類</option>
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <option key={cat.id} value={cat.name}>
                 {cat.name}
               </option>
@@ -202,118 +191,102 @@ function CreateArticle() {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="tags">標籤</label>
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">標籤 (用逗號分隔)</label>
           <input
             type="text"
-            id="tags"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="輸入標籤，用逗號分隔"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="React, JavaScript, 前端開發"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="coverImageUrl">封面圖片網址</label>
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">封面圖片 URL</label>
           <input
             type="url"
-            id="coverImageUrl"
             value={coverImageUrl}
             onChange={(e) => setCoverImageUrl(e.target.value)}
-            placeholder="輸入圖片網址（選填）"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="https://example.com/image.jpg"
           />
-          {coverImageUrl && (
-            <div className="cover-preview">
-              <p>封面預覽：</p>
-              <img
-                src={coverImageUrl}
-                alt="封面預覽"
-                style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
+        </div>
+
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium">內容</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className={`px-3 py-1 text-sm rounded ${!previewMode ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}
+                onClick={() => setPreviewMode(false)}
+              >
+                📝 編輯
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 text-sm rounded ${previewMode ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}
+                onClick={() => setPreviewMode(true)}
+              >
+                👀 預覽
+              </button>
+            </div>
+          </div>
+          {previewMode ? (
+            <div className="border border-gray-300 rounded-md p-4 min-h-[400px] bg-white prose max-w-none">
+              <ReactMarkdown components={components}>
+                {content}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="border border-gray-300 rounded-md overflow-hidden">
+              <CodeMirror
+                value={content}
+                height="400px"
+                extensions={[markdown()]}
+                theme={oneDark}
+                onChange={(value) => setContent(value)}
+                placeholder="輸入文章內容 (支援 Markdown)..."
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: true,
+                  dropCursor: true,
+                  allowMultipleSelections: true,
+                  indentOnInput: true,
+                  bracketMatching: true,
+                  closeBrackets: true,
+                  autocompletion: true,
+                  highlightSelectionMatches: true,
+                  history: true,
                 }}
               />
-              <p style={{ display: 'none', color: 'red' }}>圖片載入失敗</p>
             </div>
           )}
         </div>
 
-        <div className="form-group">
-          <label className="checkbox-label">
+        <div className="mb-6">
+          <label className="flex items-center">
             <input
               type="checkbox"
               checked={published}
               onChange={(e) => setPublished(e.target.checked)}
+              className="mr-2"
             />
             立即發布
           </label>
         </div>
 
-        <div className="content-editor">
-          <div className="editor-header">
-            <h3>文章內容</h3>
-            <div className="editor-mode-toggle">
-              <button
-                type="button"
-                className={`mode-btn ${!previewMode ? 'active' : ''}`}
-                onClick={() => setPreviewMode(false)}
-              >
-                📝 編輯模式
-              </button>
-              <button
-                type="button"
-                className={`mode-btn ${previewMode ? 'active' : ''}`}
-                onClick={() => setPreviewMode(true)}
-              >
-                👀 預覽模式
-              </button>
-            </div>
-          </div>
-          <div className="editor-container">
-            {previewMode ? (
-              <div className="markdown-preview">
-                <ReactMarkdown components={components}>
-                  {content}
-                </ReactMarkdown>
-              </div>
-            ) : (
-              <Editor
-                height="500px"
-                defaultLanguage="markdown"
-                value={content}
-                onChange={handleEditorChange}
-                theme="vs-dark"
-                options={{
-                  minimap: { enabled: false },
-                  wordWrap: 'on',
-                  fontSize: 14,
-                  lineNumbers: 'on'
-                }}
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="form-actions">
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={() => navigate('/admin')}
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            className="submit-btn"
-            disabled={loading}
-          >
-            {loading ? '創建中...' : '創建文章'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50"
+        >
+          {loading ? '發布中...' : '發布文章'}
+        </button>
       </form>
     </div>
   );
 }
 
-export default CreateArticle;
+export default CreateArticleDebug;

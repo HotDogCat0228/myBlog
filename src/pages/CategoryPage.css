@@ -2,74 +2,93 @@
   min-height: 100vh;
 }
 
-.category-header {
-  margin-bottom: 50px;
-}
-
-.category-hero {
-  padding: 80px 20px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.category-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-}
-
-.category-info {
+.container {
   max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  position: relative;
-  z-index: 2;
+  padding: 0 20px;
 }
 
-.category-icon {
-  font-size: 4rem;
-  min-width: 80px;
-  height: 80px;
+.category-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 30px 0;
+  margin-bottom: 40px;
+}
+
+.category-breadcrumb {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.category-breadcrumb a {
+  color: #6c63ff;
+  text-decoration: none;
+}
+
+.category-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.separator {
+  margin: 0 8px;
+  color: #adb5bd;
+}
+
+.category-title-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.category-icon-small {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
-  backdrop-filter: blur(10px);
+  background: #6c63ff;
+  border-radius: 12px;
+  color: white;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  flex-shrink: 0;
 }
 
-.category-details h1 {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  font-weight: 700;
-}
-
-.category-details p {
-  font-size: 1.3rem;
-  margin-bottom: 20px;
-  opacity: 0.9;
-  line-height: 1.6;
-}
-
-.category-stats {
-  display: flex;
-  gap: 20px;
-}
-
-.category-stats span {
-  background: rgba(255,255,255,0.2);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+.category-title-info h1 {
+  font-size: 2rem;
+  color: #212529;
+  margin: 0 0 8px 0;
   font-weight: 600;
-  backdrop-filter: blur(10px);
+}
+
+.category-title-info p {
+  color: #6c757d;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.category-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.article-count {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.category-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* 載入和空狀態 */
@@ -172,6 +191,17 @@
   gap: 30px;
 }
 
+.article-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.article-card-link:hover {
+  transform: translateY(-5px);
+}
+
 .article-card {
   background: white;
   border-radius: 15px;
@@ -179,10 +209,12 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   transition: all 0.3s;
   position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.article-card:hover {
-  transform: translateY(-10px);
+.article-card-link:hover .article-card {
   box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
@@ -276,7 +308,7 @@
 /* 響應式設計 */
 @media (max-width: 768px) {
   .category-hero {
-    padding: 60px 20px;
+    padding: 30px 20px;
   }
 
   .category-info {
@@ -286,13 +318,13 @@
   }
 
   .category-icon {
-    font-size: 3rem;
-    min-width: 60px;
-    height: 60px;
+    font-size: 2rem;
+    min-width: 50px;
+    height: 50px;
   }
 
   .category-details h1 {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
   }
 
   .category-details p {
@@ -325,11 +357,11 @@
 
 @media (max-width: 480px) {
   .category-hero {
-    padding: 40px 15px;
+    padding: 25px 15px;
   }
 
   .category-details h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .category-details p {
